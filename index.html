@@ -611,21 +611,31 @@ document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
              'click', 'keydown', 'scroll', 'wheel', 'touchmove'];
   evs.forEach(function (ev) { window.addEventListener(ev, tryStart, { passive: true }); });
 
-  /* 외부(동영상 재생/일시정지 등)에서 배경음악을 끄고/다시 켤 때 사용 */
+  /* 외부(동영상 재생/일시정지 등)에서 배경음악을 끄고/다시 켤 때 사용.
+     iOS는 volume 조절이 무시되고 일시정지 후 이벤트 기반 play()가 막히지만,
+     muted 토글은 허용되므로: 정지 대신 음소거로 눌러두고, 재개 시 음소거만 해제한다. */
   var isSuppressed = false, wasPlaying = false;
   window.__bgmSuppress = function () {
     if (isSuppressed) return;
     isSuppressed = true;
     wasPlaying = (!bgm.paused && !bgm.muted);   /* 껐을 때 재생 중이었는지 기억 */
-    wanted = false; started = true; detach(); bgm.pause(); sync();
+    wanted = false; started = true; detach();
+    bgm.muted = true;                            /* 1) 정지하지 않고 음소거만 (재생 유지) */
+    sync();
   };
   window.__bgmResume = function () {
     if (!isSuppressed) return;
     isSuppressed = false;
     if (!wasPlaying) { sync(); return; }        /* 원래 꺼져 있었으면 그대로 둠 */
-    wanted = true; started = true; bgm.muted = false;
-    var pr = bgm.play();
-    if (pr && pr.catch) pr.catch(function () { sync(); });
+    wanted = true; started = true;
+    bgm.muted = false;                          /* 2) 음소거 해제 (iOS 허용 동작) */
+    if (bgm.paused) {                           /* 3) iOS가 강제로 멈췄다면 재생 재시도 */
+      var pr = bgm.play();
+      if (pr && pr.then) {
+        pr.then(function () { btn.classList.remove('pulse'); sync(); })
+          .catch(function () { btn.classList.add('pulse'); sync(); });  /* 막히면 버튼 깜빡임 힌트 */
+      }
+    }
     sync();
   };
 
