@@ -574,69 +574,45 @@ var io = new IntersectionObserver(function (es) {
 }, { threshold: .15 });
 document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
 
-/* ── 배경음악: 무음 선재생 → 스크롤에서 음소거 해제 → 탭에서 확정 재생 ── */
+/* ── 배경음악: 무음 선재생 → 첫 상호작용(스크롤/드래그/탭)에서 소리 켜서 재생 ── */
 (function () {
   var bgm = document.getElementById('bgm');
   var btn = document.getElementById('bgmBtn');
   if (!bgm || !btn) return;
-  var wanted = true, unlocked = false;
+  var wanted = true, started = false;
 
   function sync() { btn.classList.toggle('off', bgm.paused || bgm.muted); }
-  function detach() {
-    soft.forEach(function (ev) { window.removeEventListener(ev, softUnlock); });
-    hard.forEach(function (ev) { window.removeEventListener(ev, hardUnlock); });
-  }
-  function success() {
-    unlocked = true;
-    btn.classList.remove('pulse');
-    detach();
-    sync();
+  function detach() { evs.forEach(function (ev) { window.removeEventListener(ev, tryStart); }); }
+
+  /* 소리 켜서 재생 시도. 사용자 동작 핸들러 안에서 동기 호출되어야 함 */
+  function tryStart(e) {
+    if (started || !wanted) return;
+    /* 배경음악 버튼 조작은 아래 버튼 핸들러가 담당 (중복 실행 방지) */
+    if (e && e.target && btn.contains(e.target)) return;
+    bgm.muted = false;
+    var pr = bgm.play();
+    if (pr && pr.then) {
+      pr.then(function () { started = true; btn.classList.remove('pulse'); detach(); sync(); })
+        .catch(function () { sync(); /* 차단되면 다음 동작에서 재시도 */ });
+    } else {
+      started = true; detach(); sync();
+    }
   }
 
-  /* 1단계: 로드 직후 무음 자동재생 (브라우저 정책상 허용) */
+  /* 로드 직후: 무음 자동재생을 미리 걸어둠 (허용되는 브라우저에서 대기 상태) */
   bgm.muted = true;
   var p0 = bgm.play();
   if (p0 && p0.catch) p0.catch(function () {});
 
-  /* 2단계: 스크롤/휠 → 무음 재생 중이면 소리만 켠다 */
-  function softUnlock() {
-    if (unlocked || !wanted) return;
-    if (!bgm.paused && bgm.muted) {
-      bgm.muted = false;
-      setTimeout(function () {
-        if (!bgm.paused && !bgm.muted) {
-          success();
-        } else {
-          /* 이 브라우저는 제스처 없는 음소거 해제를 차단 → 무음 재생 유지 + 버튼 힌트 */
-          bgm.muted = true;
-          var r = bgm.play();
-          if (r && r.catch) r.catch(function () {});
-          btn.classList.add('pulse');
-          sync();
-        }
-      }, 250);
-    } else {
-      hardUnlock();
-    }
-  }
-
-  /* 3단계: 탭/클릭/키 → 사용자 활성화가 보장되므로 확정 재생 */
-  function hardUnlock() {
-    if (unlocked || !wanted) return;
-    bgm.muted = false;
-    var pr = bgm.play();
-    if (pr && pr.then) pr.then(success).catch(function () { sync(); });
-    else success();
-  }
-
-  var soft = ['scroll', 'wheel', 'touchmove'];
-  var hard = ['pointerdown', 'mousedown', 'pointerup', 'touchend', 'click', 'keydown'];
-  soft.forEach(function (ev) { window.addEventListener(ev, softUnlock, { passive: true }); });
-  hard.forEach(function (ev) { window.addEventListener(ev, hardUnlock, { passive: true }); });
+  /* 드래그 스크롤은 손가락이 닿는 touchstart로 시작되므로 touchstart를 포함.
+     스크롤/휠/탭/키 등 사실상 모든 첫 상호작용에서 재생을 시도한다. */
+  var evs = ['touchstart', 'pointerdown', 'mousedown', 'touchend', 'pointerup',
+             'click', 'keydown', 'scroll', 'wheel', 'touchmove'];
+  evs.forEach(function (ev) { window.addEventListener(ev, tryStart, { passive: true }); });
 
   btn.addEventListener('click', function (e) {
     e.stopPropagation();
-    if (bgm.paused || bgm.muted) { wanted = true; hardUnlock(); }
+    if (bgm.paused || bgm.muted) { wanted = true; started = false; tryStart(); }
     else { wanted = false; bgm.pause(); sync(); }
   });
   bgm.addEventListener('play', sync);
