@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>김철현 ♥ 윤설아 결혼합니다</title>
 <meta property="og:title" content="김철현 ♥ 윤설아 결혼합니다">
-<meta property="og:description" content="2026년 10월 31일 토요일 오후 6시, 라마다신도림 5층 세인트그레이스홀">
+<meta property="og:description" content="2026년 10월 31일 토요일 오후 6시 10분, 라마다신도림 5층 세인트그레이스홀">
 <meta property="og:image" content="https://raw.githubusercontent.com/ulluny/wedding/main/images/DSC01987.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -629,21 +629,29 @@ document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
   var cv = document.getElementById('petals');
   if (!cv) return;
   var cx = cv.getContext('2d');
-  var W, H, ps = [];
-  function size() { W = cv.width = cv.clientWidth; H = cv.height = cv.clientHeight; }
+  var W, H, docH, ps = [], f = 0;
+  function readDocH() {
+    return Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, H || 0);
+  }
+  function size() { W = cv.width = cv.clientWidth; H = cv.height = cv.clientHeight; docH = readDocH(); }
   size(); addEventListener('resize', size);
-  for (var i = 0; i < 18; i++) ps.push({
-    x: Math.random() * W, y: (Math.random() * 2 - 1) * H, r: 4 + Math.random() * 5,
+  /* 꽃잎은 화면(뷰포트)이 아니라 문서 전체 높이에 뿌려 둔다 */
+  for (var i = 0; i < 22; i++) ps.push({
+    x: Math.random() * W, y: Math.random() * docH, r: 4 + Math.random() * 5,
     vy: .4 + Math.random() * .6, vx: -.3 + Math.random() * .6,
     a: Math.random() * Math.PI * 2, va: .01 + Math.random() * .02, o: .2 + Math.random() * .3
   });
   (function tick() {
+    if ((f++ % 30) === 0) docH = readDocH();               /* 콘텐츠 높이 변화 반영(가끔씩) */
+    var sy = window.pageYOffset || document.documentElement.scrollTop || 0;
     cx.clearRect(0, 0, W, H);
     ps.forEach(function (p) {
-      p.y += p.vy; p.x += p.vx + Math.sin(p.a) * .4; p.a += p.va;
-      if (p.y > H + 20) { p.y = -20; p.x = Math.random() * W; }
+      p.y += p.vy; p.x += p.vx + Math.sin(p.a) * .4; p.a += p.va;   /* 문서 좌표로 낙하 */
+      if (p.y > docH + 20) { p.y = -20; p.x = Math.random() * W; }
       if (p.x < -20) p.x = W + 20; else if (p.x > W + 20) p.x = -20;
-      cx.save(); cx.translate(p.x, p.y); cx.rotate(p.a); cx.globalAlpha = p.o;
+      var sYpos = p.y - sy;                                  /* 문서 좌표 → 화면 좌표(스크롤 반영) */
+      if (sYpos < -20 || sYpos > H + 20) return;             /* 화면 밖은 그리지 않음(성능) */
+      cx.save(); cx.translate(p.x, sYpos); cx.rotate(p.a); cx.globalAlpha = p.o;
       cx.fillStyle = '#cdc8bd';
       cx.beginPath(); cx.ellipse(0, 0, p.r, p.r * .55, 0, 0, Math.PI * 2); cx.fill();
       cx.restore();
@@ -850,7 +858,7 @@ function cmTab(side) {
 
 /* ── 공유 ── */
 var SHARE_URL = '설아철현결혼해요.kro.kr';
-var SHARE_FULL = 'https://' + SHARE_URL;
+var SHARE_FULL = 'https://xn--p89aw10bs4cpqbd0pqjo02a3m.kro.kr';
 var COVER_IMG = 'https://raw.githubusercontent.com/ulluny/wedding/main/images/DSC01987.jpg';
 var MAP_LINK = 'https://map.kakao.com/link/map/%EB%9D%BC%EB%A7%88%EB%8B%A4%EC%8B%A0%EB%8F%84%EB%A6%BC,37.50643,126.88532';
 
@@ -868,13 +876,12 @@ function kakaoShare() {
         objectType: 'feed',
         content: {
           title: '김철현 ♥ 윤설아 결혼합니다',
-          description: '2026년 10월 31일 토요일 오후 6시\n라마다신도림 5층 세인트그레이스홀',
+          description: '2026년 10월 31일 토요일 오후 6시 10분\n라마다신도림 5층 세인트그레이스홀',
           imageUrl: COVER_IMG,
           link: { mobileWebUrl: SHARE_FULL, webUrl: SHARE_FULL }
         },
         buttons: [
-          { title: '청첩장 보기', link: { mobileWebUrl: SHARE_FULL, webUrl: SHARE_FULL } },
-          { title: '위치 안내', link: { mobileWebUrl: MAP_LINK, webUrl: MAP_LINK } }
+          { title: '모바일 청첩장 보기', link: { mobileWebUrl: SHARE_FULL, webUrl: SHARE_FULL } }
         ]
       });
     } catch (e) {
