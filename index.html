@@ -611,8 +611,23 @@ document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
              'click', 'keydown', 'scroll', 'wheel', 'touchmove'];
   evs.forEach(function (ev) { window.addEventListener(ev, tryStart, { passive: true }); });
 
-  /* 외부(동영상 재생 등)에서 배경음악을 끌 때 사용 */
-  window.__bgmSuppress = function () { wanted = false; started = true; detach(); bgm.pause(); sync(); };
+  /* 외부(동영상 재생/일시정지 등)에서 배경음악을 끄고/다시 켤 때 사용 */
+  var isSuppressed = false, wasPlaying = false;
+  window.__bgmSuppress = function () {
+    if (isSuppressed) return;
+    isSuppressed = true;
+    wasPlaying = (!bgm.paused && !bgm.muted);   /* 껐을 때 재생 중이었는지 기억 */
+    wanted = false; started = true; detach(); bgm.pause(); sync();
+  };
+  window.__bgmResume = function () {
+    if (!isSuppressed) return;
+    isSuppressed = false;
+    if (!wasPlaying) { sync(); return; }        /* 원래 꺼져 있었으면 그대로 둠 */
+    wanted = true; started = true; bgm.muted = false;
+    var pr = bgm.play();
+    if (pr && pr.catch) pr.catch(function () { sync(); });
+    sync();
+  };
 
   btn.addEventListener('click', function (e) {
     e.stopPropagation();
@@ -784,15 +799,19 @@ new IntersectionObserver(function (es) {
   if (v.readyState >= 1) showThumb();
 
   p.addEventListener('click', function () {
-    if (window.__bgmSuppress) window.__bgmSuppress();  /* 영상 재생 시 배경음악 끄기 */
     v.currentTime = 0;            /* 재생은 처음부터 */
     v.setAttribute('controls', '');
     v.play();
     p.style.display = 'none';
   });
+  /* 영상 재생/재개 → 배경음악 끄기 */
+  v.addEventListener('play', function () { if (window.__bgmSuppress) window.__bgmSuppress(); });
+  /* 영상 일시정지 → 배경음악 다시 이어서 재생 */
+  v.addEventListener('pause', function () { if (window.__bgmResume) window.__bgmResume(); });
   v.addEventListener('ended', function () {
     v.removeAttribute('controls');
     p.style.display = 'flex';
+    if (window.__bgmResume) window.__bgmResume();   /* 끝나면 배경음악 다시 재생 */
     showThumb();                  /* 끝나면 다시 8초 썸네일로 */
   });
 })();
