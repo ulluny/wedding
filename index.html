@@ -290,6 +290,7 @@ footer{background:var(--paper);text-align:center;padding:32px 20px;font-family:'
 #toast{position:fixed;left:50%;bottom:44px;transform:translate(-50%,20px);z-index:99;background:rgba(35,35,35,.92);color:#fff;font-size:12.5px;padding:12px 22px;border-radius:4px;opacity:0;pointer-events:none;transition:.35s;white-space:nowrap}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
 </head>
 <body>
 <audio id="bgm" src="bgm.mp3" loop preload="auto"></audio>
@@ -849,10 +850,36 @@ function cmTab(side) {
 
 /* ── 공유 ── */
 var SHARE_URL = '설아철현결혼해요.kro.kr';
+var SHARE_FULL = 'https://' + SHARE_URL;
+var COVER_IMG = 'https://raw.githubusercontent.com/ulluny/wedding/main/images/DSC01987.jpg';
+var MAP_LINK = 'https://map.kakao.com/link/map/%EB%9D%BC%EB%A7%88%EB%8B%A4%EC%8B%A0%EB%8F%84%EB%A6%BC,37.50643,126.88532';
+
+/* 카카오 SDK 초기화 (JavaScript 키) */
+if (window.Kakao && !Kakao.isInitialized()) {
+  try { Kakao.init('99d0127079dfc2faaa0b5a744e09fe4d'); } catch (e) {}
+}
+
 function copyLink() { doCopy(SHARE_URL, '청첩장 링크가 복사되었습니다'); }
+
 function kakaoShare() {
-  if (navigator.share) {
-    navigator.share({ title: '김철현 ♥ 윤설아 결혼합니다', url: 'https://' + SHARE_URL }).catch(function () {});
+  if (window.Kakao && Kakao.Share && Kakao.isInitialized()) {
+    try {
+      Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: '김철현 ♥ 윤설아 결혼합니다',
+          description: '2026년 10월 31일 토요일 오후 6시\n라마다신도림 5층 세인트그레이스홀',
+          imageUrl: COVER_IMG,
+          link: { mobileWebUrl: SHARE_FULL, webUrl: SHARE_FULL }
+        },
+        buttons: [
+          { title: '청첩장 보기', link: { mobileWebUrl: SHARE_FULL, webUrl: SHARE_FULL } },
+          { title: '위치 안내', link: { mobileWebUrl: MAP_LINK, webUrl: MAP_LINK } }
+        ]
+      });
+    } catch (e) {
+      doCopy(SHARE_URL, '링크가 복사되었습니다. 카카오톡에 붙여넣어 주세요');
+    }
   } else {
     doCopy(SHARE_URL, '링크가 복사되었습니다. 카카오톡에 붙여넣어 주세요');
   }
