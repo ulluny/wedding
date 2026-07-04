@@ -575,78 +575,87 @@ var io = new IntersectionObserver(function (es) {
 }, { threshold: .15 });
 document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
 
-/* ── 배경음악: 무음 선재생 → 첫 상호작용(스크롤/드래그/탭)에서 소리 켜서 재생 ── */
+/* ── 배경음악: 무음 선재생 → 첫 상호작용에서 재생. 영상과 연동, iOS 폴백 포함 ── */
 (function () {
   var bgm = document.getElementById('bgm');
   var btn = document.getElementById('bgmBtn');
   if (!bgm || !btn) return;
-  var wanted = true, started = false;
+  var started = false;   /* 한 번이라도 재생이 unlock 됐는지 */
+  var userOn = false;    /* 사용자가 배경음악을 원하는 상태 (아이콘 표시 기준) */
+  var wantAuto = true;   /* 첫 상호작용 자동 시작을 원하는지 */
+  var startEvs = ['touchstart', 'pointerdown', 'mousedown', 'touchend', 'pointerup',
+                  'click', 'keydown', 'scroll', 'wheel', 'touchmove'];
+  var tapEvs = ['touchend', 'pointerup', 'click', 'keydown'];
 
-  function sync() { btn.classList.toggle('off', bgm.paused || bgm.muted); }
-  function detach() { evs.forEach(function (ev) { window.removeEventListener(ev, tryStart); }); }
+  function icon() { btn.classList.toggle('off', !userOn); }
+  function play() { bgm.muted = false; return bgm.play(); }  /* 소리내어 재생 (사용자 동작 안에서) */
 
-  /* 소리 켜서 재생 시도. 사용자 동작 핸들러 안에서 동기 호출되어야 함 */
-  function tryStart(e) {
-    if (started || !wanted) return;
-    /* 배경음악 버튼 조작은 아래 버튼 핸들러가 담당 (중복 실행 방지) */
+  /* ── 첫 상호작용에서 자동 시작 ── */
+  function firstStart(e) {
+    if (started || !wantAuto) return;
+    if (e && e.target && btn.contains(e.target)) return;   /* 버튼은 버튼 핸들러가 담당 */
+    var p = play();
+    if (p && p.then) p.then(function () { started = true; userOn = true; icon(); detachStart(); })
+                       .catch(function () { /* 막히면 다음 동작에서 재시도 */ });
+    else { started = true; userOn = true; icon(); detachStart(); }
+  }
+  function detachStart() { startEvs.forEach(function (ev) { window.removeEventListener(ev, firstStart); }); }
+
+  bgm.muted = true; var p0 = bgm.play(); if (p0 && p0.catch) p0.catch(function () {});
+  startEvs.forEach(function (ev) { window.addEventListener(ev, firstStart, { passive: true }); });
+
+  /* ── 다음 탭에서 재개 (iOS 폴백): 재생이 실패하면 깜빡이며 다음 탭을 기다림 ── */
+  var pulseArmed = false;
+  function disarm() {
+    if (!pulseArmed) return;
+    pulseArmed = false; btn.classList.remove('pulse');
+    tapEvs.forEach(function (ev) { window.removeEventListener(ev, onTapResume); });
+  }
+  function onTapResume(e) {
     if (e && e.target && btn.contains(e.target)) return;
-    bgm.muted = false;
-    var pr = bgm.play();
-    if (pr && pr.then) {
-      pr.then(function () { started = true; btn.classList.remove('pulse'); detach(); sync(); })
-        .catch(function () { sync(); /* 차단되면 다음 동작에서 재시도 */ });
-    } else {
-      started = true; detach(); sync();
-    }
+    var p = play(); if (p && p.catch) p.catch(function () {});
+    verify();
+  }
+  function armNextTap() {
+    if (pulseArmed || !userOn) return;
+    pulseArmed = true; btn.classList.add('pulse');
+    tapEvs.forEach(function (ev) { window.addEventListener(ev, onTapResume, { passive: true }); });
+  }
+  /* 실제 재생 여부를 currentTime 진행으로 확인 → 되면 마무리, 안 되면 다음 탭 대기 */
+  function verify() {
+    var t0 = bgm.currentTime;
+    setTimeout(function () {
+      if (!userOn) { disarm(); return; }
+      if (!bgm.muted && bgm.currentTime > t0 + 0.05) disarm();   /* 진짜 재생 중 → 힌트 끔 */
+      else armNextTap();                                          /* 아직 안 됨 → 다음 탭 대기 */
+    }, 400);
   }
 
-  /* 로드 직후: 무음 자동재생을 미리 걸어둠 (허용되는 브라우저에서 대기 상태) */
-  bgm.muted = true;
-  var p0 = bgm.play();
-  if (p0 && p0.catch) p0.catch(function () {});
-
-  /* 드래그 스크롤은 손가락이 닿는 touchstart로 시작되므로 touchstart를 포함.
-     스크롤/휠/탭/키 등 사실상 모든 첫 상호작용에서 재생을 시도한다. */
-  var evs = ['touchstart', 'pointerdown', 'mousedown', 'touchend', 'pointerup',
-             'click', 'keydown', 'scroll', 'wheel', 'touchmove'];
-  evs.forEach(function (ev) { window.addEventListener(ev, tryStart, { passive: true }); });
-
-  /* 외부(동영상 재생/일시정지 등)에서 배경음악을 끄고/다시 켤 때 사용.
-     iOS는 volume 조절이 무시되고 일시정지 후 이벤트 기반 play()가 막히지만,
-     muted 토글은 허용되므로: 정지 대신 음소거로 눌러두고, 재개 시 음소거만 해제한다. */
-  var isSuppressed = false, wasPlaying = false;
+  /* ── 영상 연동 API ── */
+  var isSuppressed = false, wasOn = false;
   window.__bgmSuppress = function () {
     if (isSuppressed) return;
     isSuppressed = true;
-    wasPlaying = (!bgm.paused && !bgm.muted);   /* 껐을 때 재생 중이었는지 기억 */
-    wanted = false; started = true; detach();
-    bgm.muted = true;                            /* 1) 정지하지 않고 음소거만 (재생 유지) */
-    sync();
+    wasOn = userOn;                 /* 껐을 때 켜져 있었는지 기억 */
+    wantAuto = false; started = true; detachStart();
+    bgm.pause();                    /* 영상에 오디오 양보 (iOS는 어차피 정지시킴) */
+    /* 아이콘(userOn)은 그대로 유지 → 영상 재생 중에도 '켜짐'으로 표시 */
   };
   window.__bgmResume = function () {
     if (!isSuppressed) return;
     isSuppressed = false;
-    if (!wasPlaying) { sync(); return; }        /* 원래 꺼져 있었으면 그대로 둠 */
-    wanted = true; started = true;
-    bgm.muted = false;                          /* 2) 음소거 해제 (iOS 허용 동작) */
-    if (bgm.paused) {                           /* 3) iOS가 강제로 멈췄다면 재생 재시도 */
-      var pr = bgm.play();
-      if (pr && pr.then) {
-        pr.then(function () { btn.classList.remove('pulse'); sync(); })
-          .catch(function () { btn.classList.add('pulse'); sync(); });  /* 막히면 버튼 깜빡임 힌트 */
-      }
-    }
-    sync();
+    if (!wasOn) return;             /* 원래 꺼져 있었으면 그대로 둠 */
+    userOn = true; icon();
+    var p = play(); if (p && p.catch) p.catch(function () {});
+    verify();                       /* 진짜 재생됐는지 확인, 안 되면 깜빡이며 다음 탭 대기 */
   };
 
+  /* ── 음표 버튼 토글 ── */
   btn.addEventListener('click', function (e) {
     e.stopPropagation();
-    if (bgm.paused || bgm.muted) { wanted = true; started = false; tryStart(); }
-    else { wanted = false; bgm.pause(); sync(); }
+    if (!userOn) { wantAuto = true; started = true; userOn = true; icon(); disarm(); var p = play(); if (p && p.catch) p.catch(function () {}); verify(); }
+    else { userOn = false; icon(); disarm(); bgm.pause(); }
   });
-  bgm.addEventListener('play', sync);
-  bgm.addEventListener('pause', sync);
-  bgm.addEventListener('volumechange', sync);
 })();
 
 /* ── 커버 꽃잎 ── */
