@@ -9,7 +9,7 @@
 <meta property="og:image" content="https://raw.githubusercontent.com/ulluny/wedding/main/images/DSC01987.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 <style>
 :root{
   --paper:#edebe6;        /* 커버 배경 (라이트 그레이지) */
@@ -232,6 +232,46 @@ section{position:relative;padding:78px 28px}
 .acc-row .who{font-size:11px;color:var(--ink-faint)}
 .acc-row .num{font-size:13px;margin-top:3px;color:var(--ink)}
 .copy-btn{border:1px solid #e0ded8;background:var(--grey-bg);border-radius:4px;font-family:inherit;font-size:11px;padding:7px 12px;cursor:pointer;color:var(--ink-soft);flex:0 0 auto}
+
+/* ───── 🥚 이스터에그 ───── */
+#egg{
+  position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;
+  padding:26px;background:rgba(30,28,26,.55);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+}
+#egg.open{display:flex}
+.egg-card{
+  width:100%;max-width:340px;text-align:center;
+  animation:eggIn .5s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes eggIn{from{transform:scale(.86) translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.egg-photo{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 18px 46px rgba(20,18,16,.5);background:#111}
+.egg-photo img{display:block;width:100%;height:auto;max-height:70svh;object-fit:cover;object-position:center 45%}
+/* ✏️ 손글씨 문구 스타일 (색/크기/위치) */
+.egg-write{
+  position:absolute;left:0;right:0;top:52%;padding:0 16px;
+  font-family:'Nanum Pen Script',cursive;
+  font-size:clamp(30px,9vw,40px);line-height:1.3;
+  color:#2563eb;-webkit-text-stroke:.75px #2563eb;   /* 살짝 굵게 */
+  text-shadow:0 2px 12px rgba(255,255,255,.9), 0 0 26px rgba(255,255,255,.65);
+}
+.egg-write span{display:inline-block;opacity:0;-webkit-clip-path:inset(0 100% 0 0);clip-path:inset(0 100% 0 0)}
+.egg-write span.w{animation:writeIn .24s ease-out forwards}
+@keyframes writeIn{
+  from{opacity:1;-webkit-clip-path:inset(0 100% 0 0);clip-path:inset(0 100% 0 0)}
+  to{opacity:1;-webkit-clip-path:inset(0 0 0 0);clip-path:inset(0 0 0 0)}
+}
+.egg-close{
+  margin-top:16px;border:none;background:rgba(255,255,255,.92);color:var(--ink);
+  font-family:inherit;font-size:13px;padding:12px 32px;border-radius:6px;cursor:pointer;
+}
+.egg-close:active{transform:scale(.97)}
+.egg-heart{position:fixed;bottom:-40px;z-index:91;pointer-events:none;animation:floatUp 3.4s ease-in forwards}
+@keyframes floatUp{
+  0%{transform:translateY(0) scale(.6) rotate(-8deg);opacity:0}
+  15%{opacity:1}
+  100%{transform:translateY(-105vh) scale(1.1) rotate(10deg);opacity:0}
+}
 
 /* ───── share / footer ───── */
 #share{background:var(--white);text-align:center;padding:30px 28px 70px}
@@ -495,7 +535,7 @@ footer{background:var(--paper);text-align:center;padding:32px 20px;font-family:'
     너그러운 마음으로 양해 부탁드립니다.
   </div>
   <div class="acc reveal d2">
-    <div class="acc-group">
+    <div class="acc-group" id="groomAcc">
       <button class="acc-head" onclick="toggleAcc(this)">신랑측 계좌번호 <span class="arrow">▼</span></button>
       <div class="acc-body">
         <!-- ✏️ 은행/계좌번호/예금주를 실제 정보로 수정하세요 -->
@@ -563,6 +603,18 @@ footer{background:var(--paper);text-align:center;padding:32px 20px;font-family:'
         <div class="cm-btns"><a class="cm-sms" href="sms:010-5348-2104">문자 보내기</a><a class="cm-call" href="tel:010-5348-2104">전화하기</a></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- 🥚 이스터에그 (신랑 → 아버지 → 어머니 → 신랑 순서로 복사 버튼을 누르면 열립니다) -->
+<div id="egg" onclick="if(event.target===this)closeEgg()">
+  <div class="egg-card">
+    <div class="egg-photo">
+      <!-- ✏️ 사진 경로 / 아래 문구(<br>로 줄바꿈)를 수정하세요 -->
+      <img src="images/egg01.jpg" alt="이스터에그 사진">
+      <div class="egg-write" id="eggWrite" aria-label="경덕아! 나도 축가 불러줘!">경덕아!<br>나도 축가 불러줘!</div>
+    </div>
+    <button class="egg-close" onclick="closeEgg()">닫기</button>
   </div>
 </div>
 
@@ -902,6 +954,7 @@ function toggleAcc(btn) {
 function copyAcc(btn) {
   var t = btn.parentElement.querySelector('.num').getAttribute('data-acc');
   doCopy(t, '계좌번호가 복사되었습니다');
+  if (window.eggTap) eggTap(btn);   /* 🥚 숨은 순서 확인 */
 }
 function doCopy(text, msg) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -922,6 +975,8 @@ function toast(msg) {
 
 /* ── 연락 모달 ── */
 function openContact() { document.getElementById('contactModal').classList.add('open'); }
+
+
 function closeContact() { document.getElementById('contactModal').classList.remove('open'); }
 function cmTab(side) {
   var g = side === 'groom';
@@ -930,6 +985,97 @@ function cmTab(side) {
   document.getElementById('tabGroom').classList.toggle('on', g);
   document.getElementById('tabBride').classList.toggle('on', !g);
 }
+
+/* ── 🥚 이스터에그 ──
+   신랑측 계좌에서 [신랑 → 아버지 → 어머니 → 신랑] 순서로 복사 버튼을 누르면 발동합니다.
+   순서가 틀리거나 8초 이상 멈추면 처음부터 다시 세기 시작합니다. */
+(function () {
+  var SEQ = [0, 1, 2, 0];   /* 0=신랑, 1=아버지, 2=어머니 (계좌 줄 순서) */
+  var RESET_MS = 8000;
+  var pos = 0, timer = null;
+
+  function resetSoon() {
+    clearTimeout(timer);
+    timer = setTimeout(function () { pos = 0; }, RESET_MS);
+  }
+
+  window.eggTap = function (btn) {
+    var group = btn.closest ? btn.closest('.acc-group') : btn.parentElement.parentElement.parentElement;
+    if (!group || group.id !== 'groomAcc') { pos = 0; return; }   /* 신부측이면 초기화 */
+
+    var row = btn.closest ? btn.closest('.acc-row') : btn.parentElement;
+    var rows = group.querySelectorAll('.acc-row');
+    var idx = Array.prototype.indexOf.call(rows, row);
+
+    if (idx === SEQ[pos]) pos++;
+    else pos = (idx === SEQ[0]) ? 1 : 0;   /* 틀렸어도 첫 단계면 새로 시작으로 인정 */
+
+    if (pos >= SEQ.length) { pos = 0; clearTimeout(timer); fire(); }
+    else resetSoon();
+  };
+
+  function fire() {
+    var egg = document.getElementById('egg');
+    if (!egg || egg.classList.contains('open')) return;
+    var t = document.getElementById('toast');
+    if (t) t.classList.remove('show');                 /* 복사 안내 토스트는 잠시 감춤 */
+    if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
+    egg.classList.add('open');
+    handwrite();                                       /* 손글씨 한 획씩 쓰기 */
+    hearts();
+  }
+
+  /* ── 손글씨 효과: 글자를 하나씩 왼쪽→오른쪽으로 쓸어내며 나타나게 함 ── */
+  var WRITE_START = 500;   /* 사진이 뜬 뒤 쓰기 시작까지 대기(ms) */
+  var WRITE_STEP  = 230;   /* 글자 하나당 간격(ms) — 숫자를 키우면 더 천천히 씁니다 */
+  var writeEl = document.getElementById('eggWrite');
+  var WRITE_HTML = writeEl ? writeEl.innerHTML : '';   /* 원본 문구 보관 (다시 열 때 재사용) */
+  var writeTimers = [];
+
+  function handwrite() {
+    if (!writeEl) return;
+    writeTimers.forEach(clearTimeout); writeTimers = [];
+    var src = document.createElement('div'); src.innerHTML = WRITE_HTML;
+    writeEl.innerHTML = '';
+    var n = 0;
+    Array.prototype.forEach.call(src.childNodes, function (node) {
+      if (node.nodeType === 3) {                        /* 텍스트 → 글자별 span */
+        node.textContent.split('').forEach(function (ch) {
+          if (ch === '\n' || ch === '\r') return;
+          var sp = document.createElement('span');
+          sp.textContent = (ch === ' ') ? '\u00a0' : ch;
+          writeEl.appendChild(sp);
+          (function (el, k) {
+            writeTimers.push(setTimeout(function () { el.classList.add('w'); }, WRITE_START + k * WRITE_STEP));
+          })(sp, n++);
+        });
+      } else if (node.nodeName === 'BR') {              /* 줄바꿈은 그대로 */
+        writeEl.appendChild(document.createElement('br'));
+      }
+    });
+  }
+
+  function hearts() {
+    var chars = ['💗', '🤍', '🌸', '✨', '💐'];
+    for (var i = 0; i < 18; i++) {
+      setTimeout(function () {
+        var h = document.createElement('div');
+        h.className = 'egg-heart';
+        h.textContent = chars[Math.floor(Math.random() * chars.length)];
+        h.style.left = (4 + Math.random() * 90) + '%';
+        h.style.fontSize = (16 + Math.random() * 16) + 'px';
+        h.style.animationDuration = (2.8 + Math.random() * 1.6) + 's';
+        document.body.appendChild(h);
+        setTimeout(function () { if (h.parentNode) h.parentNode.removeChild(h); }, 5200);
+      }, i * 140);
+    }
+  }
+
+  window.closeEgg = function () {
+    document.getElementById('egg').classList.remove('open');
+    writeTimers.forEach(clearTimeout); writeTimers = [];   /* 쓰다 만 타이머 정리 */
+  };
+})();
 
 /* ── 공유 ── */
 var SHARE_URL = '설아철현결혼해요.kro.kr';
