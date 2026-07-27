@@ -249,9 +249,9 @@ section{position:relative;padding:78px 28px}
 .egg-photo img{display:block;width:100%;height:auto;max-height:70svh;object-fit:cover;object-position:center 45%}
 /* ✏️ 손글씨 문구 스타일 (색/크기/위치) */
 .egg-write{
-  position:absolute;left:0;right:0;top:52%;padding:0 16px;
+  position:absolute;left:0;right:0;top:calc(52% + 1.3em);padding:0 16px;   /* +1.3em = 정확히 한 줄 아래 */
   font-family:'Nanum Pen Script',cursive;
-  font-size:clamp(30px,9vw,40px);line-height:1.3;
+  font-size:clamp(32px,9.6vw,43px);line-height:1.3;
   color:#2563eb;-webkit-text-stroke:.75px #2563eb;   /* 살짝 굵게 */
   text-shadow:0 2px 12px rgba(255,255,255,.9), 0 0 26px rgba(255,255,255,.65);
 }
