@@ -323,17 +323,17 @@ footer{background:var(--paper);text-align:center;padding:32px 20px;font-family:'
 <!-- ═══ INVITATION ═══ -->
 <section id="invite">
   <div class="eng-title reveal">INVITATION</div>
-  <!-- ✏️ 인용구와 출처는 자유롭게 수정 가능합니다 -->
+  <!-- ✏️ 인사 문구는 자유롭게 수정 가능합니다 -->
   <div class="quote reveal d1">
-    예쁜 예감이 들었다.<br>
-    우리는 언제나<br>
-    손을 잡고 있게 될 것이다.
-    <span class="src">- 이이체 '연인'中 -</span>
+    가을의 끝자락에서<br>
+    저희 두 사람은 앞으로 함께 맞이할<br>
+    모든 계절을 약속합니다.
   </div>
   <div class="poem reveal d2">
-    서로의 따뜻함을 닮아가며<br>
-    예쁘게 살겠습니다.<br>
-    귀한 걸음을 하시어<br>
+    봄의 설렘도, 여름의 눈부심도,<br>
+    가을의 깊음도, 겨울의 고요함도<br>
+    변함없는 마음으로 함께하겠습니다.<br><br>
+    저희의 새로운 시작을 함께하시어<br>
     축복해 주시면 감사하겠습니다.
   </div>
   <div class="parents reveal d2">
@@ -568,7 +568,7 @@ footer{background:var(--paper);text-align:center;padding:32px 20px;font-family:'
 <script>
 /* ✏️ 갤러리 사진 폴더 (여기 안의 이미지가 자동으로 전부 표시됩니다) */
 var GALLERY_API = 'https://api.github.com/repos/ulluny/wedding/contents/images/gallery';
-var WEDDING = new Date(2026, 9, 31, 18, 0, 0);
+var WEDDING = new Date(2026, 9, 31, 18, 10, 0);
 var VENUE = { lat: 37.50643, lng: 126.88532, name: "라마다신도림" };
 
 /* ── 스크롤 리빌 ── */
@@ -698,12 +698,17 @@ document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
   })();
 })();
 
-/* ── 디데이 ── */
+/* ── 디데이 (시간이 아니라 '날짜' 기준으로 계산 → 자정이 지나면 하루 줄어듭니다) ── */
 function tickCd() {
-  var diff = WEDDING - new Date();
+  var line = document.querySelector('.dday-line');
   var el = document.getElementById('dday-num');
-  if (diff <= 0) { el.textContent = '오늘'; return; }
-  el.textContent = Math.ceil(diff / 864e5) + '일';
+  if (!line) return;
+  var today = new Date(); today.setHours(0, 0, 0, 0);                                  /* 오늘 00:00 */
+  var wed = new Date(WEDDING.getFullYear(), WEDDING.getMonth(), WEDDING.getDate());    /* 예식일 00:00 */
+  var days = Math.round((wed - today) / 864e5);                                        /* 남은 '일수' */
+  if (days > 0) { if (el) el.textContent = days + '일'; }
+  else if (days === 0) line.textContent = '오늘은 저희의 결혼식 날입니다.';
+  else line.textContent = '함께해 주셔서 감사합니다.';
 }
 tickCd(); setInterval(tickCd, 60000);
 
