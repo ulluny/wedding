@@ -1187,7 +1187,7 @@ function cmTab(side) {
 /* ── 🥚 이스터에그 ─────────────────────────────────────────────
    세 가지 모두 마지막에 [공유하기 (링크 복사)] 버튼을 눌러야 발동합니다.
    ① 신랑측에서 [신랑 → 아버지 → 어머니 → 신랑] 순서로 복사 → 공유하기
-   ② 신랑 1번 + 신랑 어머니 2번 복사 → 공유하기
+   ② 신랑 1번 + 신랑 어머니 5번 복사 → 공유하기
    ③ 신랑 1번 + 신부 5번 복사 → 공유하기
    ✏️ 사진·문구·문구 위치/크기는 아래 EGGS 에서 수정하세요
       top=세로위치, left/right=가로범위, align=정렬, size=글씨크기, step=쓰는 속도(ms) */
@@ -1196,7 +1196,7 @@ var EGGS = {
         lines: ['경덕아!', '나도 축가 불러줘!'] },
   e2: { img: 'images/egg03.jpg', top: '56%',
         lines: ['모두 행복하게', '잘 살자!'] },
-  e3: { img: 'images/egg02.jpg', top: '46%', left: '34%', right: '0', align: 'right',
+  e3: { img: 'images/egg02.jpg', top: '13%', left: '34%', right: '0', align: 'right',
         size: 'clamp(23px,7vw,31px)', step: 190,
         lines: ['우리 오래오래', '행복하게 잘 살자', '사랑해!'] }
 };
@@ -1247,7 +1247,7 @@ var EGGS = {
   }
   window.eggShare = function () {
     if (seqReady)                  { resetAll(); fire('e1'); return true; }
-    if (matches({ g0: 1, g2: 2 })) { resetAll(); fire('e2'); return true; }
+    if (matches({ g0: 1, g2: 5 })) { resetAll(); fire('e2'); return true; }
     if (matches({ g0: 1, b0: 5 })) { resetAll(); fire('e3'); return true; }
     return false;
   };
