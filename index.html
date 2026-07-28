@@ -287,8 +287,11 @@ body.locked .bgm{opacity:0;pointer-events:none}
 .fold.open .flap-bot{transform:rotateX(0deg) translateZ(0)}
 
 .fc-face{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.flap-top .fc-face{border-radius:999px 999px 0 0}
-.flap-bot .fc-face{border-radius:0 0 999px 999px}
+.flap-top .f-photo{border-radius:999px 999px 0 0}
+.flap-bot .f-photo{border-radius:0 0 999px 999px}
+/* 종이 뒷면은 180° 뒤집힌 면이므로 둥근 쪽을 반대로 준다 */
+.flap-top .f-paper{border-radius:0 0 999px 999px}
+.flap-bot .f-paper{border-radius:999px 999px 0 0}
 .f-photo{background:#cfc6b8}
 .flap-top .f-photo .ph{top:0}
 .flap-bot .f-photo .ph{bottom:0}
@@ -317,7 +320,7 @@ body.locked .bgm{opacity:0;pointer-events:none}
 }
 .flap-bot .f-paper::after{            /* 은박 테두리 (봉투 앞면) */
   content:"";position:absolute;inset:10px;pointer-events:none;
-  border:1px solid #b8b5ae;border-radius:0 0 999px 999px;
+  border:1px solid #b8b5ae;border-radius:999px 999px 0 0;
 }
 @supports ((-webkit-mask-composite:xor) or (mask-composite:exclude)){
   .flap-bot .f-paper::after{
