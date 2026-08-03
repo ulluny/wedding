@@ -1193,6 +1193,7 @@ function cmTab(side) {
    ② 신랑 1번 + 신랑 어머니 5번 복사 → 공유하기
    ③ 신랑 1번 + 신부 5번 복사 → 공유하기
    ④ 신랑 4번 + 신랑 아버지 6번 + 신랑 어머니 3번 복사 → 공유하기
+   ⑤ 신랑 2번 + 신랑 아버지 2번 + 신랑 어머니 2번 복사 → 공유하기
    ✏️ 사진·문구·문구 위치/크기는 아래 EGGS 에서 수정하세요
       top=세로위치, left/right=가로범위, align=정렬, size=글씨크기, step=쓰는 속도(ms) */
 var EGGS = {
@@ -1205,7 +1206,10 @@ var EGGS = {
         lines: ['우리 오래오래', '행복하게 잘 살자', '사랑해!'] },
   e4: { img: 'images/egg04.jpg', top: '7%', left: '4%', right: '30%', align: 'left',
         size: 'clamp(21px,6.4vw,28px)', step: 170,
-        lines: ['범성아', '결혼 축하해줘서', '너무 고맙다!', '항상 행복하자!'] }
+        lines: ['범성아', '결혼 축하해줘서', '너무 고맙다!', '항상 행복하자!'] },
+  e5: { img: 'images/egg05.jpg', top: '5%', left: '0', right: '0', align: 'center',
+        size: 'clamp(19px,5.6vw,26px)', step: 150,
+        lines: ['부모님!', '낳아주시고 키워주시어', '감사합니다.', '누나 동생도 고마워~'] }
 };
 
 (function () {
@@ -1256,6 +1260,7 @@ var EGGS = {
     if (matches({ g0: 1, g2: 5 }))          { resetAll(); fire('e2'); return true; }
     if (matches({ g0: 1, b0: 5 }))          { resetAll(); fire('e3'); return true; }
     if (matches({ g0: 4, g1: 6, g2: 3 }))   { resetAll(); fire('e4'); return true; }
+    if (matches({ g0: 2, g1: 2, g2: 2 }))   { resetAll(); fire('e5'); return true; }
     if (seqReady)                           { resetAll(); fire('e1'); return true; }
     return false;
   };
