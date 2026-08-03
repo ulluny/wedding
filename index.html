@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="robots" content="noindex, nofollow, noarchive, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
 <title>김철현 ♥ 윤설아 결혼합니다</title>
 <meta property="og:title" content="김철현 ♥ 윤설아 결혼합니다">
 <meta property="og:description" content="2026년 10월 31일 토요일 오후 6시 10분, 라마다신도림 5층 세인트그레이스홀">
@@ -758,8 +760,16 @@ footer{background:var(--paper);text-align:center;padding:32px 20px;font-family:'
 <div id="toast"></div>
 
 <script>
-/* ✏️ 갤러리 사진 폴더 (여기 안의 이미지가 자동으로 전부 표시됩니다) */
-var GALLERY_API = 'https://api.github.com/repos/ulluny/wedding/contents/images/gallery';
+/* ✏️ 갤러리 사진 목록 (images/gallery 폴더에 넣은 파일 이름을 순서대로 적어주세요)
+   - 사진을 추가/삭제하면 이 목록만 고치면 됩니다. 여기 적힌 순서 그대로 표시됩니다.
+   - 확장자가 다르면(png/webp 등) 이름 그대로 적어주세요. 예: '24.png' */
+var GALLERY_DIR = 'images/gallery/';
+var GALLERY_FILES = [
+  '1.jpg',  '2.jpg',  '3.jpg',  '4.jpg',  '5.jpg',  '6.jpg',
+  '7.jpg',  '8.jpg',  '9.jpg',  '10.jpg', '11.jpg', '12.jpg',
+  '13.jpg', '14.jpg', '15.jpg', '16.jpg', '17.jpg', '18.jpg',
+  '19.jpg', '20.jpg', '21.jpg', '22.jpg', '23.jpg'
+];
 var WEDDING = new Date(2026, 9, 31, 18, 10, 0);
 var VENUE = { lat: 37.50643, lng: 126.88532, name: "라마다신도림" };
 
@@ -1003,22 +1013,14 @@ function galleryNote(msg) {
   gMain.innerHTML = '<div class="g-note">' + msg + '</div>';
 }
 
-/* 폴더 안 이미지 파일을 이름순으로 정렬해 전부 표시 */
-galleryNote('사진을 불러오는 중...');
-fetch(GALLERY_API)
-  .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(function (data) {
-    if (!Array.isArray(data)) throw new Error('bad');
-    var imgs = data
-      .filter(function (f) { return f.type === 'file' && /\.(jpe?g|png|gif|webp)$/i.test(f.name); })
-      .sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true }); })
-      .map(function (f) { return f.download_url; });
-    if (imgs.length) { gMain.innerHTML = ''; buildGallery(imgs); }
-    else galleryNote('images/gallery 폴더에<br>사진을 올려주세요.');
-  })
-  .catch(function () {
-    galleryNote('갤러리를 잠시 불러오지 못했습니다.<br>새로고침 해주세요.');
-  });
+/* 목록에 적힌 사진을 순서대로 표시 (외부 API 호출 없음) */
+(function () {
+  var imgs = (GALLERY_FILES || [])
+    .filter(function (n) { return /\.(jpe?g|png|gif|webp)$/i.test(n); })
+    .map(function (n) { return GALLERY_DIR + n; });
+  if (imgs.length) { gMain.innerHTML = ''; buildGallery(imgs); }
+  else galleryNote('images/gallery 폴더에<br>사진을 올려주세요.');
+})();
 
 /* 갤러리 스와이프 (메인 사진 좌우로 밀어서 넘기기) */
 (function () {
@@ -1208,7 +1210,7 @@ var EGGS = {
         size: 'clamp(21px,6.4vw,28px)', step: 170,
         lines: ['범성아', '결혼 축하해줘서', '너무 고맙다!', '항상 행복하자!'] },
   e5: { img: 'images/egg05.jpg', top: '5%', left: '0', right: '0', align: 'center',
-        size: 'clamp(19px,5.6vw,26px)', step: 150,
+        size: 'clamp(20px,5.9vw,27px)', step: 150,
         lines: ['부모님!', '낳아주시고 키워주시어', '감사합니다.', '누나 동생도 고마워~'] }
 };
 
