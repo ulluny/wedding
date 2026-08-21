@@ -746,7 +746,7 @@ footer{background:var(--paper);text-align:center;padding:32px 20px;font-family:'
   </div>
 </div>
 
-<!-- 🥚 이스터에그 (사진과 문구는 스크립트 상단 EGGS 설정에서 수정) -->
+<!-- surprise overlay -->
 <div id="egg" onclick="if(event.target===this)closeEgg()">
   <div class="egg-card">
     <div class="egg-photo">
@@ -1157,7 +1157,7 @@ function toggleAcc(btn) {
 function copyAcc(btn) {
   var t = btn.parentElement.querySelector('.num').getAttribute('data-acc');
   doCopy(t, '계좌번호가 복사되었습니다');
-  if (window.eggTap) eggTap(btn);   /* 🥚 숨은 순서 확인 */
+  if (window.__et) __et(btn);
 }
 function doCopy(text, msg) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1189,133 +1189,102 @@ function cmTab(side) {
   document.getElementById('tabBride').classList.toggle('on', !g);
 }
 
-/* ── 🥚 이스터에그 ─────────────────────────────────────────────
-   세 가지 모두 마지막에 [공유하기 (링크 복사)] 버튼을 눌러야 발동합니다.
-   ① 신랑측에서 [신랑 → 아버지 → 어머니 → 신랑] 순서로 복사 → 공유하기
-   ② 신랑 1번 + 신랑 어머니 5번 복사 → 공유하기
-   ③ 신랑 1번 + 신부 5번 복사 → 공유하기
-   ④ 신랑 4번 + 신랑 아버지 6번 + 신랑 어머니 3번 복사 → 공유하기
-   ⑤ 신랑 2번 + 신랑 아버지 2번 + 신랑 어머니 2번 복사 → 공유하기
-   ✏️ 사진·문구·문구 위치/크기는 아래 EGGS 에서 수정하세요
-      top=세로위치, left/right=가로범위, align=정렬, size=글씨크기, step=쓰는 속도(ms) */
-var EGGS = {
-  e1: { img: 'images/egg01.jpg', top: 'calc(52% + 1.3em)',
-        lines: ['경덕아!', '나도 축가 불러줘!'] },
-  e2: { img: 'images/egg03.jpg', top: '56%',
-        lines: ['모두 행복하게', '잘 살자!'] },
-  e3: { img: 'images/egg02.jpg', top: '13%', left: '34%', right: '0', align: 'right',
-        size: 'clamp(23px,7vw,31px)', step: 190,
-        lines: ['우리 오래오래', '행복하게 잘 살자', '사랑해!'] },
-  e4: { img: 'images/egg04.jpg', top: '7%', left: '4%', right: '30%', align: 'left',
-        size: 'clamp(21px,6.4vw,28px)', step: 170,
-        lines: ['범성아', '결혼 축하해줘서', '너무 고맙다!', '항상 행복하자!'] },
-  e5: { img: 'images/egg05.jpg', top: '5%', left: '0', right: '0', align: 'center',
-        size: 'clamp(23px,6.8vw,30px)', step: 150,
-        lines: ['부모님!', '낳아주시고 키워주시어', '감사합니다.', '누나 동생도 고마워~'] }
-};
+/* ── ✨ surprise feature ── */
+var _K = "eyJjIjp7ImUxIjp7ImkiOiJpbWFnZXMvZWdnMDEuanBnIiwidCI6ImNhbGMoNTIlICsgMS4zZW0pIiwieCI6WyLqsr3rjZXslYQhIiwi64KY64+EIOy2leqwgCDrtojrn6zspJghIl19LCJlMiI6eyJpIjoiaW1hZ2VzL2VnZzAzLmpwZyIsInQiOiI1NiUiLCJ4IjpbIuuqqOuRkCDtlonrs7XtlZjqsowiLCLsnpgg7IK07J6QISJdfSwiZTMiOnsiaSI6ImltYWdlcy9lZ2cwMi5qcGciLCJ0IjoiMTMlIiwibCI6IjM0JSIsInIiOiIwIiwiYSI6InJpZ2h0IiwieiI6ImNsYW1wKDIzcHgsN3Z3LDMxcHgpIiwicCI6MTkwLCJ4IjpbIuyasOumrCDsmKTrnpjsmKTrnpgiLCLtlonrs7XtlZjqsowg7J6YIOyCtOyekCIsIuyCrOueke2VtCEiXX0sImU0Ijp7ImkiOiJpbWFnZXMvZWdnMDQuanBnIiwidCI6IjclIiwibCI6IjQlIiwiciI6IjMwJSIsImEiOiJsZWZ0IiwieiI6ImNsYW1wKDIxcHgsNi40dncsMjhweCkiLCJwIjoxNzAsIngiOlsi67KU7ISx7JWEIiwi6rKw7Zi8IOy2le2VmO2VtOykmOyEnCIsIuuEiOustCDqs6Drp5nri6QhIiwi7ZWt7IOBIO2Wieuzte2VmOyekCEiXX0sImU1Ijp7ImkiOiJpbWFnZXMvZWdnMDUuanBnIiwidCI6IjUlIiwibCI6IjAiLCJyIjoiMCIsImEiOiJjZW50ZXIiLCJ6IjoiY2xhbXAoMjNweCw2Ljh2dywzMHB4KSIsInAiOjE1MCwieCI6WyLrtoDrqqjri5ghIiwi64Kz7JWE7KO87Iuc6rOgIO2CpOybjOyjvOyLnOyWtCIsIuqwkOyCrO2VqeuLiOuLpC4iLCLriITrgpgg64+Z7IOd64+EIOqzoOuniOybjH4iXX19LCJyIjpbeyJrIjoiZTIiLCJuZWVkIjp7ImcwIjoxLCJnMiI6NX19LHsiayI6ImUzIiwibmVlZCI6eyJnMCI6MSwiYjAiOjV9fSx7ImsiOiJlNCIsIm5lZWQiOnsiZzAiOjQsImcxIjo2LCJnMiI6M319LHsiayI6ImU1IiwibmVlZCI6eyJnMCI6MiwiZzEiOjIsImcyIjoyfX1dLCJzIjpbMCwxLDIsMF0sInNrIjoiZTEifQ==";
+function _d(s) { return decodeURIComponent(escape(window.atob(s))); }
+var _D = JSON.parse(_d(_K));
 
 (function () {
-  var SEQ = [0, 1, 2, 0];   /* ①번 순서 (0=신랑, 1=아버지, 2=어머니) */
-  var SEQ_RESET = 8000;     /* ①번: 순서를 밟는 중 이 시간 넘게 멈추면 처음부터 */
-  var IDLE_RESET = 90000;   /* 아무 것도 안 누르면 기록 초기화 */
-  var pos = 0, seqReady = false, seqTimer = null;
-  var cnt = {}, idleTimer = null;
+  var _p = 0, _sr = false, _st = null;
+  var _c = {}, _it = null;
 
-  function resetAll() {
-    cnt = {}; pos = 0; seqReady = false;
-    clearTimeout(seqTimer); clearTimeout(idleTimer);
+  function _reset() {
+    _c = {}; _p = 0; _sr = false;
+    clearTimeout(_st); clearTimeout(_it);
   }
 
-  /* ── 복사 버튼이 눌릴 때마다 호출 ── */
-  window.eggTap = function (btn) {
-    var group = btn.closest ? btn.closest('.acc-group') : null;
+  window.__et = function (btn) {
+    var g = btn.closest ? btn.closest('.acc-group') : null;
     var row = btn.closest ? btn.closest('.acc-row') : btn.parentElement;
-    if (!group) return;
-    var idx = Array.prototype.indexOf.call(group.querySelectorAll('.acc-row'), row);
-    var groom = (group.id === 'groomAcc');
+    if (!g) return;
+    var idx = Array.prototype.indexOf.call(g.querySelectorAll('.acc-row'), row);
+    var isG = (g.id === 'groomAcc');
 
-    /* 누른 횟수 기록 (g=신랑측, b=신부측) */
-    var key = (groom ? 'g' : 'b') + idx;
-    cnt[key] = (cnt[key] || 0) + 1;
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(resetAll, IDLE_RESET);
+    var key = (isG ? 'g' : 'b') + idx;
+    _c[key] = (_c[key] || 0) + 1;
+    clearTimeout(_it);
+    _it = setTimeout(_reset, 90000);
 
-    /* ①번 순서 판정 (완성되면 공유하기를 기다림) */
-    if (!groom) { pos = 0; return; }
-    if (seqReady) return;
-    if (idx === SEQ[pos]) pos++;
-    else pos = (idx === SEQ[0]) ? 1 : 0;
-    clearTimeout(seqTimer);
-    if (pos >= SEQ.length) { pos = 0; seqReady = true; }
-    else if (pos > 0) { seqTimer = setTimeout(function () { pos = 0; }, SEQ_RESET); }
+    if (!isG) { _p = 0; return; }
+    if (_sr) return;
+    var seq = _D.s;
+    if (idx === seq[_p]) _p++;
+    else _p = (idx === seq[0]) ? 1 : 0;
+    clearTimeout(_st);
+    if (_p >= seq.length) { _p = 0; _sr = true; }
+    else if (_p > 0) { _st = setTimeout(function () { _p = 0; }, 8000); }
   };
 
-  /* ── 공유하기(링크 복사)를 눌렀을 때 판정 ── */
-  function matches(want) {
-    var keys = ['g0', 'g1', 'g2', 'b0', 'b1', 'b2'];
-    for (var i = 0; i < keys.length; i++) {
-      if ((cnt[keys[i]] || 0) !== (want[keys[i]] || 0)) return false;
+  function _match(want) {
+    var ks = ['g0', 'g1', 'g2', 'b0', 'b1', 'b2'];
+    for (var i = 0; i < ks.length; i++) {
+      if ((_c[ks[i]] || 0) !== (want[ks[i]] || 0)) return false;
     }
     return true;
   }
-  window.eggShare = function () {
-    if (matches({ g0: 1, g2: 5 }))          { resetAll(); fire('e2'); return true; }
-    if (matches({ g0: 1, b0: 5 }))          { resetAll(); fire('e3'); return true; }
-    if (matches({ g0: 4, g1: 6, g2: 3 }))   { resetAll(); fire('e4'); return true; }
-    if (matches({ g0: 2, g1: 2, g2: 2 }))   { resetAll(); fire('e5'); return true; }
-    if (seqReady)                           { resetAll(); fire('e1'); return true; }
+  window.__es = function () {
+    var rc = _D.r;
+    for (var i = 0; i < rc.length; i++) {
+      if (_match(rc[i].need)) { _reset(); _fire(rc[i].k); return true; }
+    }
+    if (_sr) { _reset(); _fire(_D.sk); return true; }
     return false;
   };
 
-  /* ── 연출 ── */
-  var eggEl = document.getElementById('egg');
-  var imgEl = document.getElementById('eggImg');
-  var writeEl = document.getElementById('eggWrite');
-  var WRITE_START = 500;   /* 사진이 뜬 뒤 쓰기 시작까지 대기(ms) */
-  var WRITE_STEP  = 230;   /* 글자 하나당 기본 간격(ms) — 키우면 더 천천히 씁니다 */
-  var writeTimers = [], heartTimer = null;
+  var _eggEl = document.getElementById('egg');
+  var _imgEl = document.getElementById('eggImg');
+  var _wrEl = document.getElementById('eggWrite');
+  var _wTimers = [], _hTimer = null;
 
-  function fire(k) {
-    var cfg = EGGS[k];
-    if (!eggEl || !cfg || eggEl.classList.contains('open')) return;
+  function _fire(k) {
+    var cfg = _D.c[k];
+    if (!_eggEl || !cfg || _eggEl.classList.contains('open')) return;
     var t = document.getElementById('toast');
-    if (t) t.classList.remove('show');                 /* 복사 안내 토스트는 잠시 감춤 */
+    if (t) t.classList.remove('show');
     if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
-    if (imgEl) imgEl.src = cfg.img;
-    if (writeEl) {
-      writeEl.style.top = cfg.top || '';
-      writeEl.style.left = cfg.left || '';
-      writeEl.style.right = cfg.right || '';
-      writeEl.style.textAlign = cfg.align || '';
-      writeEl.style.fontSize = cfg.size || '';
+    if (_imgEl) _imgEl.src = cfg.i;
+    if (_wrEl) {
+      _wrEl.style.top = cfg.t || '';
+      _wrEl.style.left = cfg.l || '';
+      _wrEl.style.right = cfg.r || '';
+      _wrEl.style.textAlign = cfg.a || '';
+      _wrEl.style.fontSize = cfg.z || '';
     }
-    eggEl.classList.add('open');
-    handwrite(cfg.lines || [], cfg.step || WRITE_STEP);
-    startHearts();
+    _eggEl.classList.add('open');
+    _write(cfg.x || [], cfg.p || 230);
+    _hearts();
   }
 
-  /* 손글씨: 글자를 하나씩 왼쪽→오른쪽으로 쓸어내며 나타나게 함 */
-  function handwrite(lines, step) {
-    if (!writeEl) return;
-    writeTimers.forEach(clearTimeout); writeTimers = [];
-    writeEl.innerHTML = '';
+  function _write(lines, step) {
+    if (!_wrEl) return;
+    _wTimers.forEach(clearTimeout); _wTimers = [];
+    _wrEl.innerHTML = '';
     var n = 0;
     lines.forEach(function (line, li) {
-      if (li) writeEl.appendChild(document.createElement('br'));
+      if (li) _wrEl.appendChild(document.createElement('br'));
       line.split('').forEach(function (ch) {
-        if (ch === ' ') { writeEl.appendChild(document.createTextNode(' ')); return; }
+        if (ch === ' ') { _wrEl.appendChild(document.createTextNode(' ')); return; }
         var sp = document.createElement('span');
         sp.textContent = ch;
-        writeEl.appendChild(sp);
+        _wrEl.appendChild(sp);
         (function (el, k) {
-          writeTimers.push(setTimeout(function () { el.classList.add('w'); }, WRITE_START + k * step));
+          _wTimers.push(setTimeout(function () { el.classList.add('w'); }, 500 + k * step));
         })(sp, n++);
       });
     });
   }
 
-  /* 하트·꽃잎: 이스터에그가 열려 있는 동안 계속 올라옵니다 */
-  function petal() {
+  function _petal() {
     var chars = ['💗', '🤍', '🌸', '✨', '💐'];
     var h = document.createElement('div');
     h.className = 'egg-heart';
@@ -1326,20 +1295,20 @@ var EGGS = {
     document.body.appendChild(h);
     setTimeout(function () { if (h.parentNode) h.parentNode.removeChild(h); }, 5200);
   }
-  function startHearts() {
-    stopHearts();
-    for (var i = 0; i < 10; i++) setTimeout(petal, i * 150);   /* 처음엔 한 번에 여러 개 */
-    heartTimer = setInterval(function () {                      /* 이후 계속 이어서 */
-      petal(); if (Math.random() < .45) setTimeout(petal, 180);
+  function _hearts() {
+    _stopHearts();
+    for (var i = 0; i < 10; i++) setTimeout(_petal, i * 150);
+    _hTimer = setInterval(function () {
+      _petal(); if (Math.random() < .45) setTimeout(_petal, 180);
     }, 430);
   }
-  function stopHearts() { if (heartTimer) { clearInterval(heartTimer); heartTimer = null; } }
+  function _stopHearts() { if (_hTimer) { clearInterval(_hTimer); _hTimer = null; } }
 
   window.closeEgg = function () {
-    eggEl.classList.remove('open');
-    writeTimers.forEach(clearTimeout); writeTimers = [];   /* 쓰다 만 타이머 정리 */
-    stopHearts();
-    resetAll();                                            /* 다음 이스터에그를 위해 기록 초기화 */
+    _eggEl.classList.remove('open');
+    _wTimers.forEach(clearTimeout); _wTimers = [];
+    _stopHearts();
+    _reset();
   };
 })();
 
@@ -1355,7 +1324,7 @@ if (window.Kakao && !Kakao.isInitialized()) {
 }
 
 function copyLink() {
-  if (window.eggShare && eggShare()) return;   /* 🥚 숨은 조합이면 이스터에그 */
+  if (window.__es && __es()) return;
   doCopy(SHARE_URL, '청첩장 링크가 복사되었습니다');
 }
 
