@@ -172,9 +172,12 @@ section{position:relative;padding:78px 28px}
 .g-thumbs::-webkit-scrollbar{display:none}
 .g-thumbs img{width:60px;height:60px;object-fit:cover;border-radius:3px;flex:0 0 auto;cursor:pointer;opacity:.5;transition:.3s;border:1px solid transparent}
 .g-thumbs img.cur{opacity:1;border-color:var(--ink-soft)}
-/* 브라우저 확대(핀치 줌) 시 갤러리 사진 흐리게 — 배율은 JS가 --zblur 로 넣어줍니다 */
+/* 브라우저 확대(핀치 줌) 시 갤러리 사진 흐리게 — 배율은 JS가 --zblur 로 넣어줍니다
+   보통 확대까지는 선명하게 두고, 많이 확대할 때부터 서서히 흐려집니다 */
+#gallery .g-main img,
+#gallery .g-thumbs img{transition:opacity 1s ease, filter .25s ease}
 #gallery.zoom-blur .g-main img,
-#gallery.zoom-blur .g-thumbs img{filter:blur(var(--zblur,6px))}
+#gallery.zoom-blur .g-thumbs img{filter:blur(var(--zblur,0px))}
 /* ───── location ───── */
 #loc{background:var(--white);text-align:center;padding-top:64px;padding-bottom:50px}
 .venue{margin-top:34px}
@@ -1054,13 +1057,17 @@ new IntersectionObserver(function (es) {
   var vv = window.visualViewport;
   var gal = document.getElementById('gallery');
   if (!vv || !gal) return;
-  var MIN_SCALE = 1.05;   /* 이 배율을 넘으면 블러 시작 (손떨림 방지용 여유) */
-  var MAX_BLUR = 12;      /* 최대 블러 강도(px) */
+  /* ✏️ 보통 크게 보는 정도(START 이하)는 선명하게 두고,
+        잡티가 보일 만큼 많이 확대했을 때부터 흐려집니다 */
+  var START = 2.5;        /* 이 배율을 넘어서야 블러 시작 (키우면 더 확대해야 흐려짐) */
+  var FULL = 4.0;         /* 이 배율에서 최대 블러 */
+  var MAX_BLUR = 14;      /* 최대 블러 강도(px) */
   var on = false;
   function apply() {
     var s = vv.scale || 1;
-    if (s > MIN_SCALE) {
-      var b = Math.min((s - 1) * 9, MAX_BLUR);           /* 많이 확대할수록 더 흐리게 */
+    if (s > START) {
+      var k = Math.min((s - START) / (FULL - START), 1);  /* 0 → 1 */
+      var b = MAX_BLUR * k * k;                           /* 처음엔 약하게, 갈수록 강하게 */
       gal.style.setProperty('--zblur', b.toFixed(1) + 'px');
       if (!on) { gal.classList.add('zoom-blur'); on = true; }
     } else if (on) {
